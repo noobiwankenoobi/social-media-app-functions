@@ -21,3 +21,23 @@ exports.getShouts = functions.https.onRequest((req, res) => {
     })
     .catch((err) => console.error(err));
 })
+
+exports.createShout = functions.https.onRequest((req, res) => {
+  const newShout = {
+    body: req.body.body,
+    userHandle: req.body.userHandle,
+    createdAt: admin.firestore.Timestamp.fromDate(new Date())
+  };
+
+  admin
+    .firestore()
+    .collection('shouts')
+    .add(newShout)
+    .then(doc => {
+      res.json({ message: `document ${doc.id} created successfully` });
+    })
+    .catch(err => {
+      res.status(500).json({ error: 'something went wrong' });
+      console.error(err);
+    })
+})
