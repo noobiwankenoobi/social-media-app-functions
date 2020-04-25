@@ -3,14 +3,11 @@ const admin = require('firebase-admin');
 
 admin.initializeApp();
 
-// // Create and Deploy Your First Cloud Functions
-// // https://firebase.google.com/docs/functions/write-firebase-functions
-//
-exports.helloWorld = functions.https.onRequest((request, response) => {
-  response.send("Hello from Firebase!");
-});
+const express = require('express');
+const app = express();
 
-exports.getShouts = functions.https.onRequest((req, res) => {
+// first parameter is the route, second is the handler
+app.get('/shouts', (req, res) => {
   admin.firestore().collection('shouts').get()
     .then((data) => {
       let shouts = [];
@@ -22,7 +19,7 @@ exports.getShouts = functions.https.onRequest((req, res) => {
     .catch((err) => console.error(err));
 })
 
-exports.createShout = functions.https.onRequest((req, res) => {
+app.post('/shout', (req, res) => {
   const newShout = {
     body: req.body.body,
     userHandle: req.body.userHandle,
@@ -40,4 +37,7 @@ exports.createShout = functions.https.onRequest((req, res) => {
       res.status(500).json({ error: 'something went wrong' });
       console.error(err);
     })
-})
+});
+
+
+exports.api = functions.https.onRequest(app);
