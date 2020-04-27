@@ -1,10 +1,11 @@
 const functions = require('firebase-functions');
-const admin = require('firebase-admin');
 
-admin.initializeApp();
+
 
 const express = require('express');
 const app = express();
+
+const { getAllShouts, postOneShout } = require('./handlers/shouts');
 
 const firebaseConfig = {
   apiKey: "AIzaSyDC_esLx9natikWK59l6BRHy7sZrrhw1L8",
@@ -20,33 +21,20 @@ const firebaseConfig = {
 const firebase = require('firebase');
 firebase.initializeApp(firebaseConfig);
 
-const db = admin.firestore();
 
-// first parameter is the route, second is the handler
 
-// ////////////////////
-// GET Shouts Route ///////////////////
-app.get('/shouts', (req, res) => {
-  db
-    .collection('shouts')
-    .get()
-    .then((data) => {
-      let shouts = [];
-      data.forEach((doc) => {
-        shouts.push({
-          shoutId: doc.id,
-          body: doc.data().body,
-          userHandle: doc.data().userHandle,
-          createdAt: doc.data().createdAt,
-          commentCount: doc.data().commentCount,
-          likeCount: doc.data().likeCount
-        });
-      })
-      return res.json(shouts);
-    })
-    .catch((err) => console.error(err));
-})
+////////////////////
+// SHOUTS ROUTES //
+//////////////////
+// GET All Shouts Route //
+app.get('/shouts', getAllShouts);
+// POST One Shout Route //
+app.post('/shout', FBAuth, postOneShout);
 
+
+
+// /////////////////////
+// FBAuth middleware ////////////////////
 const FBAuth = (req, res, next) => {
   let idToken;
   if (req.headers.authorization && req.headers.authorization.startsWith('Bearer ')) {
@@ -75,31 +63,8 @@ const FBAuth = (req, res, next) => {
     })
 }
 
-// ////////////////////////
-// POST one Shout Route ///////////////
-app.post('/shout', FBAuth, (req, res) => {
-  if (req.body.body.trim() === '') {
-    return res.status(400).json({ body: 'Body must not be empty' });
-  }
 
-  const newShout = {
-    body: req.body.body,
-    userHandle: req.user.handle,
-    createdAt: new Date().toISOString()
-  };
-  // put in db
-  db.collection('shouts')
-    // .orderBy('createdAt', 'desc')
-    .add(newShout)
-    .then((doc) => {
-      res.json({ message: `document ${doc.id} created successfully` });
-    })
-    .catch((err) => {
-      res.status(500).json({ error: 'something went wrong' });
-      console.error(err);
-    })
-});
-
+// ///////////
 // HELPERS ////////
 // Checks if email is valid using regular expression
 const isEmail = (email) => {
@@ -115,7 +80,7 @@ const isEmpty = (string) => {
 }
 
 // ///////////////////////
-// Signup Route (POST) //
+// Signup Route (POST) ////////////
 app.post('/signup', (req, res) => {
   const newUser = {
     email: req.body.email,
@@ -138,8 +103,6 @@ app.post('/signup', (req, res) => {
   if (isEmpty(newUser.handle)) errors.handle = 'Must not be empty';
 
   if (Object.keys(errors).length > 0) return res.status(400).json(errors);
-
-
 
   // Validate signup data and post to db
   let token, userId;
@@ -179,6 +142,7 @@ app.post('/signup', (req, res) => {
       }
     })
 });
+
 
 // //////////////////////
 // Login Route (POST) ////////////
