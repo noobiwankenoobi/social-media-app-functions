@@ -22,8 +22,10 @@ firebase.initializeApp(firebaseConfig);
 
 const db = admin.firestore();
 
-// GET Shouts Route
 // first parameter is the route, second is the handler
+
+// ////////////////////
+// GET Shouts Route ///////////////////
 app.get('/shouts', (req, res) => {
   db
     .collection('shouts')
@@ -45,17 +47,49 @@ app.get('/shouts', (req, res) => {
     .catch((err) => console.error(err));
 })
 
-// POST Shout Route
-app.post('/shout', (req, res) => {
+const FBAuth = (req, res, next) => {
+  let idToken;
+  if (req.headers.authorization && req.headers.authorization.startsWith('Bearer ')) {
+    idToken = req.headers.authorization.split('Bearer ')[1];
+  } else {
+    console.error('No token found')
+    return res.status(403).json({ error: 'Unauthorized' })
+  }
+
+  admin.auth().verifyIdToken(idToken)
+    .then(decodedToken => {
+      req.user = decodedToken;
+      console.log('decodedToken is ', decodedToken);
+      return db.collection('users')
+        .where('userId', '==', req.user.uid)
+        .limit(1)
+        .get();
+    })
+    .then((data) => {
+      req.user.handle = data.docs[0].data().handle;
+      return next();
+    })
+    .catch((err) => {
+      console.error('Error while verifying token ', err);
+      return res.status(403).json(err);
+    })
+}
+
+// ////////////////////////
+// POST one Shout Route ///////////////
+app.post('/shout', FBAuth, (req, res) => {
+  if (req.body.body.trim() === '') {
+    return res.status(400).json({ body: 'Body must not be empty' });
+  }
+
   const newShout = {
     body: req.body.body,
-    userHandle: req.body.userHandle,
+    userHandle: req.user.handle,
     createdAt: new Date().toISOString()
   };
   // put in db
-  db
-    .collection('shouts')
-    .orderBy('createdAt', 'desc')
+  db.collection('shouts')
+    // .orderBy('createdAt', 'desc')
     .add(newShout)
     .then((doc) => {
       res.json({ message: `document ${doc.id} created successfully` });
