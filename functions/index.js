@@ -1,26 +1,34 @@
-const functions = require('firebase-functions');
+const functions = require("firebase-functions");
 
 // Express //
-const express = require('express');
+const express = require("express");
 const app = express();
 // Firebase Auth //
-const FBAuth = require('./util/fbAuth')
+const FBAuth = require("./util/fbAuth");
 // Import handlers
-const { getAllShouts, postOneShout } = require('./handlers/shouts');
-const { signup, login, uploadImage } = require('./handlers/users');
+const { getAllShouts, postOneShout } = require("./handlers/shouts");
+const {
+  signup,
+  login,
+  uploadImage,
+  addUserDetails,
+  getAuthenticatedUser,
+} = require("./handlers/users");
 
 ////////////////////
 // SHOUTS ROUTES //
 //////////////////
-app.get('/shouts', getAllShouts);
-app.post('/shout', FBAuth, postOneShout);
+app.get("/shouts", getAllShouts);
+app.post("/shout", FBAuth, postOneShout);
 
 ///////////////////
 // USERS ROUTES //
 /////////////////
-app.post('/signup', signup);
-app.post('/login', login);
-app.post('/user/image', FBAuth, uploadImage)
+app.post("/signup", signup);
+app.post("/login", login);
+app.post("/user/image", FBAuth, uploadImage);
+app.post("/user", FBAuth, addUserDetails);
+app.get("/user", FBAuth, getAuthenticatedUser);
 
 //////////////
 // Exports //
