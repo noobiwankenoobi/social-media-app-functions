@@ -6,7 +6,7 @@ const app = express();
 // Firebase Auth //
 const FBAuth = require("./util/fbAuth");
 // Import handlers
-const { getAllShouts, postOneShout } = require("./handlers/shouts");
+const { getAllShouts, postOneShout, getShout } = require("./handlers/shouts");
 const {
   signup,
   login,
@@ -20,6 +20,12 @@ const {
 //////////////////
 app.get("/shouts", getAllShouts);
 app.post("/shout", FBAuth, postOneShout);
+app.get("/shout/:shoutId", getShout);
+// TODO:
+// delete shout
+// like shout
+// unlike shout
+// comment on a shout
 
 ///////////////////
 // USERS ROUTES //

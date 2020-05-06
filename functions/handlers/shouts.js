@@ -1,10 +1,11 @@
-const { db } = require('../util/admin')
+const { db } = require("../util/admin");
 
-// GET All Shouts
+/////////////////////
+// GET All Shouts //
+/////////////////////////////////////////
 exports.getAllShouts = (req, res) => {
-  db
-    .collection('shouts')
-    , orderBy('createdAt', 'desc')
+  db.collection("shouts"),
+    orderBy("createdAt", "desc")
       .get()
       .then((data) => {
         let shouts = [];
@@ -15,37 +16,74 @@ exports.getAllShouts = (req, res) => {
             userHandle: doc.data().userHandle,
             createdAt: doc.data().createdAt,
             commentCount: doc.data().commentCount,
-            likeCount: doc.data().likeCount
+            likeCount: doc.data().likeCount,
           });
-        })
+        });
         return res.json(shouts);
       })
       .catch((err) => {
         console.error(err);
         res.status(500).json({ error: err.code });
       });
-}
+};
+//////////////////////////////////////
 
-// POST One Shout
+/////////////////////
+// POST One Shout //
+//////////////////////////////////////
 exports.postOneShout = (req, res) => {
-  if (req.body.body.trim() === '') {
-    return res.status(400).json({ body: 'Body must not be empty' });
+  if (req.body.body.trim() === "") {
+    return res.status(400).json({ body: "Body must not be empty" });
   }
 
   const newShout = {
     body: req.body.body,
     userHandle: req.user.handle,
-    createdAt: new Date().toISOString()
+    createdAt: new Date().toISOString(),
   };
   // put in db
-  db.collection('shouts')
+  db.collection("shouts")
     // .orderBy('createdAt', 'desc')
     .add(newShout)
     .then((doc) => {
       res.json({ message: `document ${doc.id} created successfully` });
     })
     .catch((err) => {
-      res.status(500).json({ error: 'something went wrong' });
+      res.status(500).json({ error: "something went wrong" });
       console.error(err);
+    });
+};
+////////////////////////////////////////////////
+
+/////////////////////////
+// GET a single shout //
+////////////////////////////////////
+exports.getShout = (req, res) => {
+  let shoutData = {};
+  db.doc(`/shouts/${req.params.shoutId}`)
+    .get()
+    .then((doc) => {
+      if (!doc.exists) {
+        return res.status(404).json({ error: "Shout not found" });
+      }
+      shoutData = doc.data();
+      shoutData.shoutId = doc.id;
+      return db
+        .collection("comments")
+        .orderBy("createdAt", "desc")
+        .where("shoutId", "==", req.params.shoutId)
+        .get();
     })
-}
+    .then((data) => {
+      shoutData.comments = [];
+      data.forEach((doc) => {
+        shoutData.comments.push(doc.data());
+      });
+      return res.json(shoutData);
+    })
+    .catch((err) => {
+      console.error(err);
+      res.status(500).json({ error: err.code });
+    });
+};
+///////////////////////////////////////
