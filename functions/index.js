@@ -55,6 +55,9 @@ app.get("/user", FBAuth, getAuthenticatedUser);
 ////////////
 exports.api = functions.https.onRequest(app);
 
+//////////////////////////////////
+// NOTIFICATION CREATE on Like //
+////////////////////////////////////////////////////
 exports.createNotificationOnLike = functions.firestore
   .document("likes/{id}")
   .onCreate((snapshot) => {
@@ -80,3 +83,52 @@ exports.createNotificationOnLike = functions.firestore
         return;
       });
   });
+/////////////////////////////////////////////
+
+//////////////////////////////////
+// DELETE NOTIFICATION on Like //
+////////////////////////////////////////////////////
+exports.deleteNotificationOnUnlike = functions.firestore
+  .document("likes/{id}")
+  .onDelete((snapshot) => {
+    db.doc(`/notifications/${snapshot.id}`)
+      .delete()
+      .then(() => {
+        return;
+      })
+      .catch((err) => {
+        console.error(err);
+        return;
+      });
+  });
+/////////////////////////////////////
+
+/////////////////////////////////////
+// NOTIFICATION CREATE on Comment //
+////////////////////////////////////////////////////
+exports.createNotificationOnComment = functions.firestore
+  .document("comments/{id}")
+  .onCreate((snapshot) => {
+    db.doc(`/shouts/${snapshot.data().shoutId}`)
+      .get()
+      .then((doc) => {
+        if (doc.exists) {
+          return db.doc(`notifications/${snapshot.id}`).set({
+            createdAt: new Date().toISOString(),
+            recipient: doc.data().userHandle,
+            sender: snapshot.data().userHandle,
+            type: "comment",
+            read: "false",
+            shoutId: doc.id,
+          });
+        }
+      })
+      .then(() => {
+        return;
+      })
+      .catch((err) => {
+        console.error(err);
+        return;
+      });
+  });
+///////////////////////////////////////////////
