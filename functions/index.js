@@ -5,6 +5,9 @@ const express = require("express");
 const app = express();
 // Firebase Auth //
 const FBAuth = require("./util/fbAuth");
+
+const { db } = require("./util/admin");
+
 // Import handlers
 const {
   getAllShouts,
@@ -51,3 +54,29 @@ app.get("/user", FBAuth, getAuthenticatedUser);
 // Exports //
 ////////////
 exports.api = functions.https.onRequest(app);
+
+exports.createNotificationOnLike = functions.firestore
+  .document("likes/{id}")
+  .onCreate((snapshot) => {
+    db.doc(`/shouts/${snapshot.data().shoutId}`)
+      .get()
+      .then((doc) => {
+        if (doc.exists) {
+          return db.doc(`notifications/${snapshot.id}`).set({
+            createdAt: new Date().toISOString(),
+            recipient: doc.data().userHandle,
+            sender: snapshot.data().userHandle,
+            type: "like",
+            read: "false",
+            shoutId: doc.id,
+          });
+        }
+      })
+      .then(() => {
+        return;
+      })
+      .catch((err) => {
+        console.error(err);
+        return;
+      });
+  });
