@@ -8,7 +8,9 @@ const FBAuth = require("./util/fbAuth");
 
 const { db } = require("./util/admin");
 
-// Import handlers
+/////////////////////
+// SHOUT HANDLERS //
+//////////////////////////////
 const {
   getAllShouts,
   postOneShout,
@@ -19,17 +21,22 @@ const {
   deleteShout,
 } = require("./handlers/shouts");
 
+////////////////////
+// USER HANDLERS //
+/////////////////////////////
 const {
   signup,
   login,
   uploadImage,
   addUserDetails,
   getAuthenticatedUser,
+  getUserDetails,
+  markNotificationsRead,
 } = require("./handlers/users");
 
 ////////////////////
 // SHOUTS ROUTES //
-//////////////////
+////////////////////////////////////
 app.get("/shouts", getAllShouts);
 app.post("/shout", FBAuth, postOneShout);
 app.get("/shout/:shoutId", getShout);
@@ -46,6 +53,8 @@ app.post("/login", login);
 app.post("/user/image", FBAuth, uploadImage);
 app.post("/user", FBAuth, addUserDetails);
 app.get("/user", FBAuth, getAuthenticatedUser);
+app.get("/user/:handle", getUserDetails);
+app.post("/notifications", FBAuth, markNotificationsRead);
 
 //////////////
 // Exports //
