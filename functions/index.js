@@ -33,12 +33,9 @@ const {
 app.get("/shouts", getAllShouts);
 app.post("/shout", FBAuth, postOneShout);
 app.get("/shout/:shoutId", getShout);
-// Delete shout
 app.delete("/shout/:shoutId", FBAuth, deleteShout);
-// Like/unlike shout
 app.get("/shout/:shoutId/like", FBAuth, likeShout);
 app.get("/shout/:shoutId/unlike", FBAuth, unlikeShout);
-// Comment on shout
 app.post("/shout/:shoutId/comment", FBAuth, commentOnShout);
 
 ///////////////////
