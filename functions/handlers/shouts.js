@@ -4,28 +4,28 @@ const { db } = require("../util/admin");
 // GET All Shouts //
 /////////////////////////////////////////
 exports.getAllShouts = (req, res) => {
-  db.collection("shouts"),
-    orderBy("createdAt", "desc")
-      .get()
-      .then((data) => {
-        let shouts = [];
-        data.forEach((doc) => {
-          shouts.push({
-            shoutId: doc.id,
-            body: doc.data().body,
-            userHandle: doc.data().userHandle,
-            createdAt: doc.data().createdAt,
-            commentCount: doc.data().commentCount,
-            likeCount: doc.data().likeCount,
-            userImage: doc.data().userImage,
-          });
+  db.collection("shouts")
+    .orderBy("createdAt", "desc")
+    .get()
+    .then((data) => {
+      let shouts = [];
+      data.forEach((doc) => {
+        shouts.push({
+          shoutId: doc.id,
+          body: doc.data().body,
+          userHandle: doc.data().userHandle,
+          createdAt: doc.data().createdAt,
+          commentCount: doc.data().commentCount,
+          likeCount: doc.data().likeCount,
+          userImage: doc.data().userImage,
         });
-        return res.json(shouts);
-      })
-      .catch((err) => {
-        console.error(err);
-        res.status(500).json({ error: err.code });
       });
+      return res.json(shouts);
+    })
+    .catch((err) => {
+      console.error(err);
+      res.status(500).json({ error: err.code });
+    });
 };
 //////////////////////////////////////
 
