@@ -5,8 +5,11 @@ const express = require("express");
 const app = express();
 // Firebase Auth //
 const FBAuth = require("./util/fbAuth");
-
+// DB
 const { db } = require("./util/admin");
+// CORS
+const cors = require("cors");
+app.use(cors());
 
 /////////////////////
 // SHOUT HANDLERS //
